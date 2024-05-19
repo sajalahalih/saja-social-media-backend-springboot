@@ -3,7 +3,11 @@ package com.project.demo.User;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.project.demo.Post.Post;
 import com.project.demo.Reel.Reels;
 import com.project.demo.Story.Story;
@@ -58,10 +62,12 @@ public class User {
     private String password;
 
    // private String bio;
-   @JsonIgnore
+   //@JsonIgnore
    @ManyToMany
+   @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     private List<User> followers=new ArrayList<>();
-    @JsonIgnore
+   // @JsonIgnore
+   @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @ManyToMany(mappedBy = "followers")
     private List<User> following=new ArrayList<>();
 
@@ -71,9 +77,13 @@ public class User {
 
      
     //  @OneToMany(mappedBy = "user")
-
-    @JsonIgnore
+// @JsonIgnore is the originall
+   //  @JsonIgnore
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+   
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+       // @JsonManagedReference
+      // @JsonIgnoreProperties("user")
      private List<Post> posts = new ArrayList<>();
 
      @JsonIgnore

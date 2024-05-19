@@ -223,36 +223,64 @@ public ResponseEntity<?> updatePost(@PathVariable Long id,  @RequestBody Post ne
 
         return null;
     }
+    // @PutMapping("/posts/like/{postid}/user")
+    // public ResponseEntity<EntityModel<Post>> unlikedPostHandlerr(@PathVariable Long postid, @RequestHeader("Authorization") String jwt) {
+    //     try {
+    //         jwt = jwt.substring(7);
+    //         if (jwt == null || !jwtUtils.validateJwtToken(jwt)) {
+    //             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    //         }
+
+    //         String username = jwtUtils.getUserNameFromJwtToken(jwt);
+    //         User user = userRepository.findByUserName(username)
+    //             .orElseThrow();
+    //         Post post = repository.findById(postid)
+    //             .orElseThrow(() -> new PostNotFoundException(postid));
+
+    //         if (post.getLiked().contains(user)) {
+    //             post.getLiked().remove(user);
+    //         } else {
+    //             post.getLiked().add(user);
+    //         }
+
+    //         repository.save(post);
+    //         EntityModel<Post> entityModel = EntityModel.of(post);
+    //         return new ResponseEntity<>(entityModel, HttpStatus.ACCEPTED);
+    //     } catch (UserNotFoundException e) {
+    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    //     } catch (PostNotFoundException e) {
+    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
 
     @PutMapping("posts/like/{postid}/user")
-    public ResponseEntity<EntityModel<Post>> likedPostHandler(@PathVariable Long postid,  @RequestHeader("Authorization") String jwt) {
-
-        User userr; 
-
-
+    public synchronized ResponseEntity<EntityModel<Post>> likedPostHandler(@PathVariable Long postid, @RequestHeader("Authorization") String jwt) {
         jwt = jwt.substring(7);
-        if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-          String username = jwtUtils.getUserNameFromJwtToken(jwt);
-           userr=userRepository.findByUserName(username).orElseThrow();
-    
-
-        
-        Post post=repository.findById(postid).orElseThrow(()-> new PostNotFoundException(postid));
-        User user=userRepository.findById(userr.getId()).orElseThrow(()->new UserNotFoundException(userr.getId()));
-
-        
-        if(post.getLiked().contains(user)){
-            post.getLiked().remove(user);
-        }else{
-                post.getLiked().add(user);
+        if (jwt == null || !jwtUtils.validateJwtToken(jwt)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+    
+        String username = jwtUtils.getUserNameFromJwtToken(jwt);
+        User userr = userRepository.findByUserName(username).orElseThrow();
+        Post post = repository.findById(postid).orElseThrow(() -> new PostNotFoundException(postid));
+        User user = userRepository.findById(userr.getId()).orElseThrow(() -> new UserNotFoundException(userr.getId()));
+    
+        boolean alreadyLiked = post.getLiked().contains(user);
         
-         repository.save(post);
-         EntityModel<Post> entityModel = assembler.toModel(post);
-
-        return new ResponseEntity<EntityModel<Post>>(entityModel,HttpStatus.ACCEPTED);}
-        return null;
+        if (alreadyLiked) {
+            post.getLiked().remove(user);
+        } else {
+            post.getLiked().add(user);
+        }
+    
+        repository.save(post);
+        EntityModel<Post> entityModel = assembler.toModel(post);
+    
+        return new ResponseEntity<>(entityModel, HttpStatus.ACCEPTED);
     }
+    
 
     @GetMapping("/posts/user/following") //on security i authorize this link
     public CollectionModel<EntityModel<Post>> getFollowingPosts( @RequestHeader("Authorization") String jwt) {

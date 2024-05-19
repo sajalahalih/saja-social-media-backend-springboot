@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.project.demo.Post.Post;
 import com.project.demo.User.User;
 
@@ -36,6 +38,7 @@ public class Comment {
     @NotNull(message = "Post is required")
     @ManyToOne
     @JoinColumn(name = "post_id")
+    @JsonBackReference
     private Post post;
 
 
@@ -43,8 +46,8 @@ public class Comment {
     private List<User> liked=new ArrayList<>();
     private LocalDateTime createdAt;
 
-
-    @JsonIgnore
+    
+   // @JsonIgnore
        @OneToMany(mappedBy = "parentComment")  // new field for replies
     private List<Comment> replies = new ArrayList<>();
 

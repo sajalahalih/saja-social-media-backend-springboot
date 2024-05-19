@@ -4,12 +4,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.project.demo.Comment.Comment;
 import com.project.demo.User.User;
 
@@ -43,14 +46,20 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @NotNull
+   // @JsonManagedReference
+   //@JsonIgnore
+   // nothing is the originall
+    
+      // @JsonIgnoreProperties("posts")
     private User user;
     private LocalDateTime createdAt;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL)
     private List<User> liked =new ArrayList();
 
-    @JsonIgnore
+   // @JsonIgnore
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+        @JsonManagedReference
    private List<Comment> comments=new ArrayList<>();
 
     public Post(String caption, String image, String video, User user) {
@@ -63,8 +72,7 @@ public class Post {
         this.comments = new ArrayList();
     }
 
-
-
+ 
    
 
    
