@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -113,32 +114,37 @@ public class CommentController {
   
     }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11      1EDITE SECURITY EDIT LONG USERID
-    // @PutMapping("/posts/comments/like/{commentId}/user")
-    // public EntityModel<Comment> likeComment(@PathVariable Long commentId,@RequestHeader("Authorization") String jwt){
-    //     User userr; 
+    @PutMapping("/posts/comments/like/{commentId}/user")
+    public ResponseEntity<EntityModel<Comment>> likeComment(@PathVariable Long commentId,@RequestHeader("Authorization") String jwt){
 
+        jwt = jwt.substring(7);
+        if (jwt == null || !jwtUtils.validateJwtToken(jwt)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    
+        String username = jwtUtils.getUserNameFromJwtToken(jwt);
+        User userr = userRepository.findByUserName(username).orElseThrow();
+        User user = userRepository.findById(userr.getId()).orElseThrow(() -> new UserNotFoundException(userr.getId()));
+        Comment comment=commentRepository.findById(commentId).orElseThrow(()->new CommentNotFoundException(commentId, user.getId()));
+        
+        boolean alreadyLiked = comment.getLiked().contains(user);
 
-    //     jwt = jwt.substring(7);
-    //     if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-    //       String username = jwtUtils.getUserNameFromJwtToken(jwt);
-    //        userr=userRepository.findByUserName(username).orElseThrow();
-    //        long userId=userr.getId();
+        
+        if (alreadyLiked) {
+            comment.getLiked().remove(user);
+        } else {
+            comment.getLiked().add(user);
+        }
+    
+        commentRepository.save(comment);
+        EntityModel<Comment> entityModel = assembler.toModel(comment);
+    
+        return new ResponseEntity<>(entityModel, HttpStatus.ACCEPTED);
+        
 
-    //     User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
       
-    //     Comment comment=commentRepository.findById(commentId).orElseThrow(()->new CommentNotFoundException(commentId, userId));
-    //     if(comment.getLiked().contains(user)){
-    //         comment.getLiked().remove(user);
-    //     }else{
-    //         comment.getLiked().add(user);
-    //     }
-    //     commentRepository.save(comment);
-       
 
-    //     return assembler.toModel(comment);}
-    //     return null;
-
-    // }
+    }
 
     @PutMapping("/posts/{postId}/comments/{commentId}/user")
     public ResponseEntity<EntityModel<Comment>> editComment(@PathVariable Long commentId,@PathVariable Long postId, @RequestBody Comment newComment ,@RequestHeader("Authorization") String jwt){
