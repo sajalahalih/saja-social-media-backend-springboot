@@ -92,7 +92,6 @@ public class UserController {
 
             User userr; 
 
-
             jwt = jwt.substring(7);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
               String username = jwtUtils.getUserNameFromJwtToken(jwt);
@@ -132,35 +131,6 @@ public class UserController {
     
     }
 
-//     @PutMapping("users/{id}")
-// public ResponseEntity<?> updateUser( @PathVariable Long id,@Valid @RequestBody User newuser) {
-//     try{
-
-//     User updatedUser = repository.findById(id)
-//         .map(user -> {
-//             user.setUserName(newuser.getUserName());
-//             user.setGender(newuser.getGender());
-//             user.setEmail(newuser.getEmail());
-//             user.setPassword(newuser.getPassword());
-//             user.setFollowers(newuser.getFollowers());
-//             user.setFollowing(newuser.getFollowing());
-//             user.setSavedPosts(newuser.getSavedPosts());
-//             user.setImage(newuser.getImage());
-//             return repository.save(user);
-//         })
-//         .orElseGet(() -> {
-//             newuser.setId(id);
-//             return repository.save(newuser);
-//         });
-
-//     EntityModel<User> entityModel = assembler.toModel(updatedUser);
-
-//     return  ResponseEntity.ok(entityModel);
-// } catch (DataIntegrityViolationException ex) {
-//     return ResponseEntity.status(HttpStatus.CONFLICT).body("Username or email already exists");
-// }
-
-// }
 
  
     //  @GetMapping("/users/search")

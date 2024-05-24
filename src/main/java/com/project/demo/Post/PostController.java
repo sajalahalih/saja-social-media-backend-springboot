@@ -52,16 +52,16 @@ public class PostController {
         this.userRepository=userRepository;
     }
 
-     @GetMapping("/posts")
+    @GetMapping("/posts")
     public CollectionModel<EntityModel<Post>> getPosts() {
-        List<EntityModel<Post>> posts=repository.findAll().stream()
-        .map(assembler::toModel)
-        .collect(Collectors.toList());
+        List<EntityModel<Post>> posts = repository.findAll().stream()
+            .sorted((post1, post2) -> post2.getCreatedAt().compareTo(post1.getCreatedAt()))
+            .map(assembler::toModel)
+            .collect(Collectors.toList());
       
-        return CollectionModel.of(posts,linkTo(methodOn(PostController.class).getPosts()).withSelfRel());
-
-    
+        return CollectionModel.of(posts, linkTo(methodOn(PostController.class).getPosts()).withSelfRel());
     }
+    
 
       @GetMapping("/posts/{id}")
     public EntityModel<Post> getPostById(@PathVariable Long id ) {

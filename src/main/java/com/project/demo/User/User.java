@@ -39,8 +39,10 @@ public class User {
     
      
     private  @Id @GeneratedValue Long id;
+    @NotBlank
 
     private String firstName;
+    @NotBlank
     
     private String lastName;
 
