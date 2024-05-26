@@ -4,6 +4,7 @@ package com.project.demo.Message;
 
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.project.demo.Chat.Chat;
 import com.project.demo.User.User;
 
@@ -25,17 +26,20 @@ public class Message {
     @GeneratedValue
     private Long id;
 
-    @NotBlank(message = "Content is required")
+  //  @NotBlank(message = "Content is required")
     private String content;
+
     private String image;
     private String video;
  
     @NotNull(message = "User is required")
     @ManyToOne
+    
     private User user;
 
     @NotNull(message = "Chat is required")
     @JsonIgnore
+   //  @JsonManagedReference
     @ManyToOne
     private Chat chat;
 

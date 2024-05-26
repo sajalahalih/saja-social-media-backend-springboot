@@ -35,6 +35,7 @@ public class Chat {
 
     @ManyToMany
     @NotNull(message = "At least one user must be associated with the chat")
+    
       private List<User> users=new ArrayList<>();
 
     private LocalDateTime timestamp;
