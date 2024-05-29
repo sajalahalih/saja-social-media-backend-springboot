@@ -21,6 +21,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -57,6 +58,7 @@ public class User {
 
     @NotBlank
   @Size(max = 100)
+  @Email (message = "Email should be valid")
     private String email;
   
     @NotBlank

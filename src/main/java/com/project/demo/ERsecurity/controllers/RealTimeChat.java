@@ -5,9 +5,11 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
 
 import com.project.demo.Message.Message;
 
+@Controller
 public class RealTimeChat {
 
     @Autowired
@@ -17,6 +19,7 @@ public class RealTimeChat {
     @MessageMapping("/chat/{groupId}")
     public Message sendToUser( @Payload Message message,
                                @DestinationVariable String groupId){
+                                System.out.println("Sending message to user:------------------- " + groupId);
 
             simpMessagingTemplate.convertAndSendToUser(groupId, "/private", message);
         return message;

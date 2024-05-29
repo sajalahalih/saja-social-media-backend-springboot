@@ -14,7 +14,7 @@ public class SignupRequest {
 
   @NotBlank
   @Size(max = 50)
-  @Email
+  @Email(message = "Invalid email")
   private String email;
 
   private Set<String> role;
