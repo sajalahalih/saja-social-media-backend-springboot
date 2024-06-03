@@ -1,7 +1,11 @@
 package com.project.demo.ERsecurity.controllers.controllers;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,6 +34,11 @@ import com.project.demo.ERsecurity.controllers.security.jwt.JwtUtils;
 import com.project.demo.ERsecurity.controllers.security.services.UserDetailsImpl;
 import com.project.demo.User.User;
 import com.project.demo.User.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -49,6 +58,57 @@ public class AuthController {
 
   @Autowired
   JwtUtils jwtUtils;
+
+
+  private static final JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+  @PostMapping("/google/signin")
+  public ResponseEntity<?> googleSignIn(@RequestBody Map<String, String> payload) {
+      String token = payload.get("token");
+
+      try {
+          GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory)
+                  .setAudience(Collections.singletonList("YOUR_GOOGLE_CLIENT_ID"))
+                  .build();
+
+          GoogleIdToken idToken = verifier.verify(token);
+          if (idToken != null) {
+              GoogleIdToken.Payload googlePayload = idToken.getPayload();
+              String email = googlePayload.getEmail();
+
+              Optional<User> userOptional = userRepository.findByEmail(email);
+
+              if (userOptional.isPresent()) {
+                  User user = userOptional.get();
+                  Authentication authentication = authenticationManager.authenticate(
+                          new UsernamePasswordAuthenticationToken(user.getUserName(), "DEFAULT_PASSWORD"));
+
+                  SecurityContextHolder.getContext().setAuthentication(authentication);
+                  String jwt = jwtUtils.generateJwtToken(authentication);
+
+                  UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+                  return ResponseEntity.ok(new JwtResponse(jwt,
+                          userDetails.getId(),
+                          userDetails.getUsername(),
+                          userDetails.getEmail(),
+                          userDetails.getFirstName(),
+                          userDetails.getLastName(),
+                          userDetails.getAuthorities().stream()
+                                  .map(item -> item.getAuthority())
+                                  .collect(Collectors.toList())));
+              } else {
+                  return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+              }
+          } else {
+              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+          }
+      } catch (Exception e) {
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error validating token");
+      }
+  }
+
+  // @PostMapping("/login/oauth/code/google")
+
 
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {

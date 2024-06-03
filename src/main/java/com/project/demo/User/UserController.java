@@ -1,6 +1,8 @@
 package com.project.demo.User;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,7 +19,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +31,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.demo.ERsecurity.controllers.security.jwt.JwtUtils;
+import com.project.demo.Post.Post;
+import com.project.demo.Post.PostNotFoundException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 //import com.tryproject.demo.service.UserService;
@@ -52,6 +59,18 @@ public class UserController {
         assembler=userAssembler;
     }
 
+
+      @GetMapping("/user")
+    public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal) {
+        return Collections.singletonMap("name", principal.getAttribute("name"));
+    }
+    @GetMapping("/error")
+public String error(HttpServletRequest request) {
+	String message = (String) request.getSession().getAttribute("error.message");
+	request.getSession().removeAttribute("error.message");
+	return message;
+}
+    
     @GetMapping("/users")
        public CollectionModel<EntityModel<User>> getUsers() {
         List<EntityModel<User>> users=repository.findAll().stream()
@@ -83,53 +102,38 @@ public class UserController {
 
       @Autowired
   PasswordEncoder encoder;
-
-    @PutMapping("/users")
-    public ResponseEntity<?> updateUser(@RequestBody User newuser,@RequestHeader("Authorization") String jwt) {
-        
-      
-        try{
-
-            User userr; 
-
-            jwt = jwt.substring(7);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-              String username = jwtUtils.getUserNameFromJwtToken(jwt);
-               userr=repository.findByUserName(username).orElseThrow();
-    
-         
-            User updatedUser = repository.findById(userr.getId())
-            .map(user -> {
-                user.setFirstName(newuser.getFirstName());
-                user.setLastName(newuser.getLastName());
-                user.setUserName(newuser.getUserName());
-                user.setGender(newuser.getGender());
-                user.setEmail(newuser.getEmail());
-                user.setPassword(encoder.encode(newuser.getPassword()));
-                user.setFollowers(newuser.getFollowers());
-                user.setFollowing(newuser.getFollowing());
-                user.setSavedPosts(newuser.getSavedPosts());
-                user.setImage(newuser.getImage());
-                return repository.save(user);
-                
-            })
-       
-            .orElseGet(() -> {
-                System.out.println("llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll");
-                newuser.setId(userr.getId());
-                return repository.save(newuser);
-            });
-    
-        EntityModel<User> entityModel = assembler.toModel(updatedUser);
-    
-        return  ResponseEntity.ok(entityModel);
+  @PutMapping("/users")
+public ResponseEntity<?> updateUser(@RequestBody User newUser, @RequestHeader("Authorization") String jwt) {
+    if (jwt == null || !jwt.startsWith("Bearer ")) {
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
-} catch (DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Username or email already exists");
+
+    jwt = jwt.substring(7);
+    if (!jwtUtils.validateJwtToken(jwt)) {
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
-        return null; 
+
+    String username = jwtUtils.getUserNameFromJwtToken(jwt);
+    User userr = repository.findByUserName(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+    // Update only non-null properties
+    if (newUser.getFirstName() != null) userr.setFirstName(newUser.getFirstName());
+    if (newUser.getLastName() != null) userr.setLastName(newUser.getLastName());
+    if (newUser.getUserName() != null) userr.setUserName(newUser.getUserName());
+    if (newUser.getGender() != null) userr.setGender(newUser.getGender());
+    if (newUser.getEmail() != null) userr.setEmail(newUser.getEmail());
+    if (newUser.getPassword() != null) userr.setPassword(encoder.encode(newUser.getPassword()));
+    if (newUser.getFollowers() != null) userr.setFollowers(newUser.getFollowers());
+    if (newUser.getFollowing() != null) userr.setFollowing(newUser.getFollowing());
+    if (newUser.getSavedPosts() != null) userr.setSavedPosts(newUser.getSavedPosts());
+    if (newUser.getImage() != null) userr.setImage(newUser.getImage());
+
+    User updatedUser = repository.save(userr);
+
+    return ResponseEntity.ok(updatedUser);
+}
+
     
-    }
 
 
  
@@ -217,6 +221,17 @@ public class UserController {
 
     }
 
+    @GetMapping("/users/profile/{Id}")
+    public User profile(@PathVariable Long Id){
+      
+       
+          User user=repository.findById(Id).orElseThrow();
+          
+        return user;
+        }
+
+    }
+
     // @GetMapping("/users/profile")
     // public User getUserFromTokenm(@RequestHeader("Authorization") String jwt){
 
@@ -238,5 +253,3 @@ public class UserController {
     // }
 
    
- 
-}

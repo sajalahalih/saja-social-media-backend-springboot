@@ -163,9 +163,9 @@ public class CommentController {
         .filter(comment->comment.getUser().equals(user))
         .filter(comment->comment.getPost().equals(post))
         .map(comment->{
-            comment.setContent(newComment.getContent());
+            if (newComment.getContent() != null) comment.setContent(newComment.getContent());
             comment.setCreatedAt(LocalDateTime.now());
-            comment.setLiked(newComment.getLiked());
+            if (newComment.getLiked() != null) comment.setLiked(newComment.getLiked());
           
             return commentRepository.save(comment);
         })

@@ -68,10 +68,11 @@ public class User {
    // private String bio;
    //@JsonIgnore
    @ManyToMany
-   @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+   @JsonIgnore
+   //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     private List<User> followers=new ArrayList<>();
-   // @JsonIgnore
-   @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIgnore
+   //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @ManyToMany(mappedBy = "followers")
     private List<User> following=new ArrayList<>();
 

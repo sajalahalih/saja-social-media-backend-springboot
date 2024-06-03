@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HomeController {
 
-    @GetMapping("/")
-    public String home() {
-        return "Welcome to my Spring Boot application!";
-    }
+    // @GetMapping("/")
+    // public String home() {
+    //     return "Welcome to my Spring Boot application!";
+    // }
     
 }
